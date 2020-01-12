@@ -112,6 +112,8 @@ flash-ocd: all
 flash-bootloader:
 	$(GDB) $(BMP_ARGS) -ex "load" -ex "quit" build/$(BOARD)/bootloader.elf
 
+flash-dfu: all
+	dfu-util -d0483:df11 -a0 -s0x8000000:leave -D build/$(BOARD)/bootloader.bin
 
 gdb:
 	$(GDB) $(BMP_ARGS) build/$(BOARD)/bootloader.elf
