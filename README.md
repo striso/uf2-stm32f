@@ -2,6 +2,13 @@
 
 This implements USB mass storage flashing using [UF2 format](https://github.com/Microsoft/uf2)
 
+This branch is configured for the [Striso board MPE MIDI controller](https://www.striso.org/).
+
+It differs from the original in the following:
+
+- new random family id (0x2fca8c7e) to prevent flashing arcade firmware
+- add a INFO_FW.TXT file with the firmware version (written by firmware, see [Striso control firmware repository](https://github.com/striso/striso-control-firmware) for details)
+
 ## Build instructions
 
 To build just run ``make`` in this folder.
