@@ -22,6 +22,15 @@ JTAGCONFIG ?= interface/stlink-v2.cfg
 export BOARD ?= strisoboard
 -include boards/$(BOARD)/board.mk
 
+# Git revision description, recompile anything depending on uf2cfg.h on version change
+GITVERSION := $(shell git --no-pager describe --tags --always --long --dirty)
+ifneq ($(GITVERSION), $(shell cat .git_version 2>&1))
+$(shell echo -n $(GITVERSION) > .git_version)
+$(shell touch uf2cfg.h)
+endif
+
+VERSIONFLAG = -DUF2_VERSION=\"$(GITVERSION)\"
+
 # Default to F401; override in board.mk if needed
 FN ?= f4
 CPUTYPE ?= STM32F401
@@ -62,12 +71,13 @@ OBJS		:= $(patsubst %.c,%.o,$(SRCS))
 DEPS		:= $(OBJS:.o=.d)
 
 
-FLAGS		+= -mthumb $(CPUFLAGS) \
-       -D$(CPUTYPE_SHORT) \
-       -T$(LINKER_FILE) \
-	   -L$(LIBOPENCM3)/lib \
-	   -lopencm3_stm32$(FN) \
-        $(EXTRAFLAGS)
+FLAGS	+= -mthumb $(CPUFLAGS) \
+		-D$(CPUTYPE_SHORT) \
+		-T$(LINKER_FILE) \
+		-L$(LIBOPENCM3)/lib \
+		-lopencm3_stm32$(FN) \
+		$(EXTRAFLAGS) \
+		$(VERSIONFLAG)
 
 
 OPENOCDALL = $(OPENOCD) -f $(JTAGCONFIG) -f target/stm32$(FN)x.cfg

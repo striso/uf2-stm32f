@@ -8,6 +8,7 @@ It differs from the original in the following:
 
 - new random family id (0x2fca8c7e) to prevent flashing arcade firmware
 - add a INFO_FW.TXT file with the firmware version (written by firmware, see [Striso control firmware repository](https://github.com/striso/striso-control-firmware) for details)
+- get version number from git
 
 ## Build instructions
 

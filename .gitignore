@@ -14,3 +14,4 @@ Bootloader.sublime-workspace
 build
 tmp
 Makefile.user
+.git_version
