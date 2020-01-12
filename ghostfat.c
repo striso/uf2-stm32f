@@ -70,6 +70,17 @@ static size_t flashSize(void) {
     return BOARD_FLASH_SIZE;
 }
 
+/**
+ * Length of text file string, terminated by \0 or invalid utf-8
+ * and max 512 bytes long to fit in a single block.
+ */
+size_t fileLength(const char *s) {
+    const char *s0 = s;
+    while (*s++ && *s < 0xf8 && s <= s0 + 512)
+        ;
+    return (s - s0) - 1;
+}
+
 //#define DBG NOOP
 #define DBG DMESG
 
@@ -101,7 +112,7 @@ static const struct TextFile info[] = {
     {.name = "INFO_UF2TXT", .content = infoUf2File},
     {.name = "INDEX   HTM", .content = indexFile},
 #ifdef FWVERSIONFILE
-    {.name = "INFO_FW TXT", .content = (char*)FWVERSIONFILE}, // TODO: limit size to 512 bytes
+    {.name = "INFO_FW TXT", .content = (char*)FWVERSIONFILE},
 #endif
     // files below are custom handled
     {.name = "CURRENT UF2"},
@@ -271,7 +282,7 @@ int read_block(uint32_t block_no, uint8_t *data) {
                     d->size = CFGBIN_SIZE;
                     d->startCluster = CFGBIN_FIRST_SECTOR;
                 } else {
-                    d->size = inf->content ? strlen(inf->content) : UF2_SIZE;
+                    d->size = inf->content ? fileLength(inf->content) : UF2_SIZE;
                     d->startCluster = i + 2;
                 }
                 padded_memcpy(d->name, inf->name, 11);
@@ -282,7 +293,7 @@ int read_block(uint32_t block_no, uint8_t *data) {
         sectionIdx -= START_CLUSTERS;
         if (sectionIdx < NUM_INFO - 1) {
             // Send file content from info struct
-            memcpy(data, info[sectionIdx].content, strlen(info[sectionIdx].content));
+            memcpy(data, info[sectionIdx].content, fileLength(info[sectionIdx].content));
         } else {
             sectionIdx -= NUM_INFO - 1;
             uint32_t addr = sectionIdx * 256;
