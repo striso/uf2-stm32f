@@ -100,6 +100,10 @@ const char indexFile[] = //
 static const struct TextFile info[] = {
     {.name = "INFO_UF2TXT", .content = infoUf2File},
     {.name = "INDEX   HTM", .content = indexFile},
+#ifdef FWVERSIONFILE
+    {.name = "INFO_FW TXT", .content = (char*)FWVERSIONFILE}, // TODO: limit size to 512 bytes
+#endif
+    // files below are custom handled
     {.name = "CURRENT UF2"},
     {.name = "CONFIG  BIN"},
 };
@@ -229,11 +233,13 @@ int read_block(uint32_t block_no, uint8_t *data) {
     uint32_t sectionIdx = block_no;
 
     if (block_no == 0) {
+        // Send boot block
         memcpy(data, &BootBlock, sizeof(BootBlock));
         data[510] = 0x55;
         data[511] = 0xaa;
         // logval("data[0]", data[0]);
     } else if (block_no < START_ROOTDIR) {
+        // Send ?
         sectionIdx -= START_FAT0;
         // logval("sidx", sectionIdx);
         if (sectionIdx >= SECTORS_PER_FAT)
@@ -252,6 +258,7 @@ int read_block(uint32_t block_no, uint8_t *data) {
                 ((uint16_t *)(void *)data)[i] = v == CFGBIN_LAST_SECTOR ? 0xffff : v + 1;
         }
     } else if (block_no < START_CLUSTERS) {
+        // Send root dir FAT
         sectionIdx -= START_ROOTDIR;
         if (sectionIdx == 0) {
             DirEntry *d = (void *)data;
@@ -271,13 +278,16 @@ int read_block(uint32_t block_no, uint8_t *data) {
             }
         }
     } else {
+        // Send file contents
         sectionIdx -= START_CLUSTERS;
         if (sectionIdx < NUM_INFO - 1) {
+            // Send file content from info struct
             memcpy(data, info[sectionIdx].content, strlen(info[sectionIdx].content));
         } else {
             sectionIdx -= NUM_INFO - 1;
             uint32_t addr = sectionIdx * 256;
             if (addr < flashSize()) {
+                // Send CURRENT.UF2 file
                 UF2_Block *bl = (void *)data;
                 bl->magicStart0 = UF2_MAGIC_START0;
                 bl->magicStart1 = UF2_MAGIC_START1;
@@ -288,6 +298,7 @@ int read_block(uint32_t block_no, uint8_t *data) {
                 bl->payloadSize = 256;
                 memcpy(bl->data, (void *)addr, bl->payloadSize);
             } else {
+                // Send CONFIG.BIN
                 sectionIdx -= UF2_SECTORS;
                 addr = sectionIdx * 512;
                 if (addr < CFGBIN_SIZE)
