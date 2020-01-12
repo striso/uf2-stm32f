@@ -3,7 +3,7 @@
 
 #include "board.h"
 
-#define UF2_FAMILY 0x57755a57
+#define UF2_FAMILY 0x2fca8c7e
 #define BOOTLOADER_DELAY 0
 #define INTERFACE_USB 1
 #define INTERFACE_USART 0
