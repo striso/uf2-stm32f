@@ -302,7 +302,6 @@ board_init(void)
 
 #if defined(BOARD_FORCE_BL_PIN)
 	/* configure the force BL pins */
-
 	gpio_mode_setup(BOARD_FORCE_BL_PORT, GPIO_MODE_INPUT,
 		BOARD_FORCE_BL_STATE ? GPIO_PUPD_PULLDOWN : GPIO_PUPD_PULLUP,
 		BOARD_FORCE_BL_PIN);
@@ -602,7 +601,7 @@ void deepsleep() {
 int
 main(void)
 {
-	bool try_boot = false;
+	bool try_boot = true;
 	unsigned timeout = BOOTLOADER_DELAY;	/* if nonzero, drop out of the bootloader after this time */
 
 	/* Enable the FPU before we hit any FP instructions */
